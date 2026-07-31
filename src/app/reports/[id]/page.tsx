@@ -131,8 +131,16 @@ export default function ReportDetailPage() {
                 {new Date(report.created_at).toLocaleString()}
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 capitalize font-medium">
+                Type: {report.report_type}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 capitalize font-medium">
                 Status: {report.status.replace('_', ' ')}
               </span>
+              {report.target_department && (
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-950/60 border border-blue-500/40 text-blue-300 capitalize font-medium">
+                  Dept: {report.target_department.replace('_', ' ')}
+                </span>
+              )}
             </div>
           </div>
 
