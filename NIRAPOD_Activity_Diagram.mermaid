@@ -1,0 +1,65 @@
+flowchart TD
+    Start([Citizen or Authority opens Nirapod]) --> AuthCheck{Logged in?}
+    AuthCheck -- No --> Login[Sign up or log in via Supabase Auth]
+    Login --> RoleCheck{Role?}
+    AuthCheck -- Yes --> RoleCheck
+    RoleCheck -- Citizen --> CitizenHome[Citizen Home: Map plus Actions]
+    RoleCheck -- Authority --> AuthDash[Authority Dashboard]
+
+    subgraph CITIZEN["CITIZEN ACTIONS"]
+        CitizenHome --> Action{Choose action}
+        Action -- Report hazard/crime --> Form[Fill form: category, description, photo, GPS]
+        Action -- View map --> ViewMap[View hotspot map and risk heatmap]
+        Action -- Trigger SOS --> SOSBtn[Press SOS button]
+        Action -- Verify a report --> VerifyExisting[Open existing report]
+        VerifyExisting --> VoteChoice{Confirm or dispute?}
+    end
+
+    Form --> Upload[Upload photo to Supabase Storage]
+    Upload --> Insert[Insert report row, status = received]
+
+    subgraph AI["AI CLASSIFICATION PIPELINE - Gemini"]
+        Insert --> AICall[Send photo + text to Gemini vision model]
+        AICall --> TimeoutCheck{Response under 5s?}
+        TimeoutCheck -- No, timeout --> Fallback[Rule based fallback classifier]
+        TimeoutCheck -- Yes --> Valid{is_valid_report?}
+        Fallback --> Valid
+        Valid -- No --> Reject[Mark rejected, notify citizen]
+        Valid -- Yes --> Dup{Similar report within 150m in last 14 days?}
+        Dup -- Yes --> Merge[Increment confirm_count on existing report]
+        Dup -- No --> Route[Set severity, category, target_department, AI summaries]
+    end
+
+    Route --> Badge[Attach AI-verified badge: category, severity, department]
+    Badge --> Live1[Report goes live on map]
+    Merge --> Live1
+    Live1 --> HeatUpdate[Background job: recompute risk score for grid cell]
+    HeatUpdate --> ViewMap
+
+    VoteChoice -- Confirm --> IncConfirm[Increment confirm_count]
+    VoteChoice -- Dispute --> IncDispute[Increment dispute_count]
+    IncConfirm --> Live1
+    IncDispute --> Live1
+
+    SOSBtn --> Geo[Capture live GPS location]
+    Geo --> SOSInsert[Insert sos_alerts row, status = active]
+    SOSInsert --> Realtime[Supabase Realtime broadcasts the insert]
+    Realtime --> PulseMarker[Live pulsing marker appears on Authority Dashboard]
+    SOSBtn -. fallback if app is slow .-> Call999[One tap call to 999]
+
+    subgraph AUTHORITY["AUTHORITY ACTIONS"]
+        AuthDash --> Filter[Filter reports by department, status, category]
+        Badge --> Filter
+        Filter --> ReviewReport[Open report detail]
+        ReviewReport --> UpdateStatus[Update status: verified, in progress, or resolved]
+        AuthDash --> Briefing[Generate AI briefing for filtered reports]
+        PulseMarker --> Ack[Acknowledge SOS]
+        Ack --> ResolveSOS[Resolve SOS]
+    end
+
+    UpdateStatus --> NotifyCitizen[Status change reflected on citizen report page]
+    Reject --> NotifyCitizen
+    Call999 --> End([Loop continues until resolved])
+    NotifyCitizen --> End
+    ResolveSOS --> End
+    Briefing --> End
