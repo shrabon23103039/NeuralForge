@@ -24,7 +24,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>('en');
 
   useEffect(() => {
-    const saved = localStorage.getItem('nirapod_lang') as Language;
+    const cookies = document.cookie.split('; ');
+    const langCookie = cookies.find(row => row.startsWith('nirapod_lang='));
+    const cookieVal = langCookie ? (langCookie.split('=')[1] as Language) : null;
+    const saved = cookieVal || (localStorage.getItem('nirapod_lang') as Language);
     if (saved && (saved === 'en' || saved === 'bn')) {
       setLangState(saved);
     }
@@ -33,6 +36,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const setLang = (newLang: Language) => {
     setLangState(newLang);
     localStorage.setItem('nirapod_lang', newLang);
+    document.cookie = `nirapod_lang=${newLang}; path=/; max-age=31536000`;
   };
 
   const t = (key: DictKey | string, fallback?: string): string => {
