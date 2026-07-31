@@ -76,7 +76,7 @@ export const MapInner: React.FC<MapInnerProps> = ({ reports, hotspots = [], sosA
         {/* Heatmap Risk Circles */}
         {hotspots.map(spot => {
           const color = spot.risk_score > 60 ? '#ef4444' : spot.risk_score > 30 ? '#f59e0b' : '#10b981';
-          const radius = Math.max(120, spot.report_count * 90);
+          const radius = Math.max(100, Math.min(400, spot.risk_score * 3.5));
 
           return (
             <Circle

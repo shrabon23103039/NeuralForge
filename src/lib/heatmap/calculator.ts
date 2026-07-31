@@ -1,8 +1,8 @@
 import { HotspotCell, Report } from '@/types/database';
 
 export function calculateHeatmapHotspots(reports: Report[]): HotspotCell[] {
-  // Grid size approximately 150m in lat/lng degrees (~0.0015)
-  const GRID_SIZE = 0.0015;
+  // Grid size approximately 150m in lat/lng degrees (~0.00135)
+  const GRID_SIZE = 0.00135;
   const gridMap = new Map<string, {
     latSum: number;
     lngSum: number;
