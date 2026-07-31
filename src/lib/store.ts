@@ -30,6 +30,7 @@ export async function getReports(filters?: {
   type?: string;
   status?: string;
   department?: string;
+  category?: string;
 }): Promise<Report[]> {
   try {
     const supabase = createServiceRoleClient();
@@ -43,6 +44,9 @@ export async function getReports(filters?: {
     }
     if (filters?.department && filters.department !== 'all') {
       query = query.eq('target_department', filters.department);
+    }
+    if (filters?.category && filters.category !== 'all') {
+      query = query.eq('category', filters.category);
     }
 
     const { data, error } = await query;
@@ -64,6 +68,9 @@ export async function getReports(filters?: {
   }
   if (filters?.department && filters.department !== 'all') {
     filtered = filtered.filter(r => r.target_department === filters.department);
+  }
+  if (filters?.category && filters.category !== 'all') {
+    filtered = filtered.filter(r => r.category === filters.category);
   }
 
   return filtered;

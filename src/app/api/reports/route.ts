@@ -9,8 +9,9 @@ export async function GET(request: Request) {
     const type = searchParams.get('type') || undefined;
     const status = searchParams.get('status') || undefined;
     const department = searchParams.get('department') || undefined;
+    const category = searchParams.get('category') || undefined;
 
-    const reports = await getReports({ type, status, department });
+    const reports = await getReports({ type, status, department, category });
     return NextResponse.json({ success: true, count: reports.length, data: reports });
   } catch (err) {
     console.error('[API /api/reports GET Error]', err);

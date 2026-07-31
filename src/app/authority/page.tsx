@@ -16,6 +16,7 @@ export default function AuthorityDashboardPage() {
 
   const [deptFilter, setDeptFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const [briefing, setBriefing] = useState<AISummaryResult | null>(null);
   const [generatingBriefing, setGeneratingBriefing] = useState(false);
@@ -24,7 +25,7 @@ export default function AuthorityDashboardPage() {
     setLoading(true);
     try {
       const [repRes, sosRes] = await Promise.all([
-        fetch(`/api/reports?department=${deptFilter}&status=${statusFilter}`),
+        fetch(`/api/reports?department=${deptFilter}&status=${statusFilter}&category=${categoryFilter}`),
         fetch('/api/sos'),
       ]);
 
@@ -42,7 +43,7 @@ export default function AuthorityDashboardPage() {
 
   useEffect(() => {
     fetchData();
-  }, [deptFilter, statusFilter]);
+  }, [deptFilter, statusFilter, categoryFilter]);
 
   const handleStatusChange = async (reportId: string, newStatus: Status) => {
     try {
@@ -167,7 +168,7 @@ export default function AuthorityDashboardPage() {
       )}
 
       {/* Filters Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-xl">
         {/* Department Filter */}
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -203,6 +204,28 @@ export default function AuthorityDashboardPage() {
             <option value="in_progress">{t('status_in_progress')}</option>
             <option value="resolved">{t('status_resolved')}</option>
             <option value="rejected">{t('status_rejected')}</option>
+          </select>
+        </div>
+
+        {/* Category Filter */}
+        <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-amber-400" />
+            Category Filter
+          </label>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+          >
+            <option value="all">All Categories</option>
+            <option value="manhole">{t('category_manhole')}</option>
+            <option value="snatching">{t('category_snatching')}</option>
+            <option value="robbery">{t('category_robbery')}</option>
+            <option value="road_damage">{t('category_road_damage')}</option>
+            <option value="drain">{t('category_drain')}</option>
+            <option value="fire_risk">{t('category_fire_risk')}</option>
+            <option value="other">{t('category_other')}</option>
           </select>
         </div>
       </div>
