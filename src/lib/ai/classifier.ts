@@ -87,22 +87,21 @@ export async function classifyReport(
 
   const promptText = `
 You are a public-safety triage assistant for a civic-reporting app in Dhaka, Bangladesh.
-You are given a photo (if provided) and a citizen's text description of a hazard or crime location.
-Return ONLY valid JSON, no markdown formatting, in this exact schema:
+You are given a photo and a citizen's text description of a hazard or crime location.
+Return ONLY valid JSON, no markdown, in this exact schema:
 {
-  "is_valid_report": true,
-  "category": "robbery",
-  "severity": "high",
-  "target_department": "police",
-  "summary_en": "Short English summary under 25 words",
-  "summary_bn": "Short Bangla summary under 25 words"
+  "is_valid_report": boolean,
+  "category": "robbery" | "snatching" | "manhole" | "road_damage" | "drain" | "fire_risk" | "other",
+  "severity": "low" | "medium" | "high",
+  "target_department": "city_corporation" | "disaster_management" | "police",
+  "summary_en": string (<= 25 words),
+  "summary_bn": string (<= 25 words, in Bangla)
 }
-Rules:
-- category MUST be one of: "robbery", "snatching", "manhole", "road_damage", "drain", "fire_risk", "other"
-- severity MUST be one of: "low", "medium", "high"
-- target_department MUST be one of: "city_corporation", "disaster_management", "police"
-- Routing rules: manholes/road damage/drains -> city_corporation, unless severity is high with immediate injury risk -> disaster_management. Robbery/snatching/crime -> police.
-- If the description/photo is obviously invalid or fake, set is_valid_report to false.
+Routing rules: manholes/road damage/drains -> city_corporation, unless severity is
+high with immediate injury risk -> disaster_management. Robbery/snatching/crime -> police.
+If the photo does not clearly show a real hazard (blurry, unrelated, meme, duplicate
+stock image), set is_valid_report to false.
+
 Citizen description: "${description}"
 Category selected by user: "${userCategory || 'other'}"
 `;
@@ -125,7 +124,7 @@ Category selected by user: "${userCategory || 'other'}"
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
