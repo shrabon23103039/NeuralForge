@@ -1,16 +1,21 @@
 'use client';
 
+import { useAuth } from '@/lib/auth/context';
 import { useI18n } from '@/lib/i18n/context';
-import { AlertCircle, Globe, MapPin, Phone, PlusCircle, Shield, ShieldAlert, UserCheck } from 'lucide-react';
+import { AlertCircle, Globe, LogIn, LogOut, MapPin, Phone, PlusCircle, Shield, ShieldAlert, User, UserCheck } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 export const Navbar: React.FC = () => {
   const { lang, setLang, t } = useI18n();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [sosSending, setSosSending] = useState(false);
   const [sosModalOpen, setSosModalOpen] = useState(false);
+
+  const isAuthority = profile?.role === 'authority';
 
   const handleSOSTrigger = async () => {
     setSosSending(true);
@@ -41,6 +46,13 @@ export const Navbar: React.FC = () => {
     } finally {
       setSosSending(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    // Clear role cookie
+    document.cookie = 'nirapod_role=; path=/; max-age=0';
+    await signOut();
+    router.push('/');
   };
 
   return (
@@ -88,20 +100,23 @@ export const Navbar: React.FC = () => {
               {t('nav_report')}
             </Link>
 
-            <Link
-              href="/authority"
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                pathname === '/authority'
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <UserCheck className="w-4 h-4 text-blue-400" />
-              {t('nav_authority')}
-            </Link>
+            {/* Authority link — shown to authority users or always visible for demo */}
+            {(isAuthority || !user) && (
+              <Link
+                href="/authority"
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  pathname === '/authority'
+                    ? 'bg-slate-800 text-white border border-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <UserCheck className="w-4 h-4 text-blue-400" />
+                {t('nav_authority')}
+              </Link>
+            )}
           </nav>
 
-          {/* Actions & Language Switcher */}
+          {/* Actions & Auth */}
           <div className="flex items-center gap-3">
             {/* SOS Button */}
             <button
@@ -121,6 +136,43 @@ export const Navbar: React.FC = () => {
               <Globe className="w-3.5 h-3.5 text-indigo-400" />
               {lang === 'en' ? 'বাংলা' : 'English'}
             </button>
+
+            {/* Auth Button */}
+            {!authLoading && (
+              <>
+                {user ? (
+                  <div className="flex items-center gap-2">
+                    {/* User role badge */}
+                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700">
+                      <User className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                        {profile?.role || 'user'}
+                      </span>
+                      {profile?.department && (
+                        <span className="text-[9px] text-slate-500">
+                          · {profile.department.replace('_', ' ')}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-900/50 border border-slate-700 hover:border-red-500/40 text-xs font-semibold text-slate-300 hover:text-red-300 flex items-center gap-1.5 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      {t('nav_logout')}
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-indigo-900/30"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    {t('nav_login')}
+                  </Link>
+                )}
+              </>
+            )}
           </div>
         </div>
 
@@ -144,15 +196,38 @@ export const Navbar: React.FC = () => {
             <PlusCircle className="w-4 h-4" />
             {t('nav_report')}
           </Link>
-          <Link
-            href="/authority"
-            className={`flex flex-col items-center gap-1 px-3 py-1 ${
-              pathname === '/authority' ? 'text-blue-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            <UserCheck className="w-4 h-4" />
-            {t('nav_authority')}
-          </Link>
+          {(isAuthority || !user) && (
+            <Link
+              href="/authority"
+              className={`flex flex-col items-center gap-1 px-3 py-1 ${
+                pathname === '/authority' ? 'text-blue-400 font-bold' : 'text-slate-400'
+              }`}
+            >
+              <UserCheck className="w-4 h-4" />
+              {t('nav_authority')}
+            </Link>
+          )}
+          {!authLoading && (
+            user ? (
+              <button
+                onClick={handleSignOut}
+                className="flex flex-col items-center gap-1 px-3 py-1 text-slate-400"
+              >
+                <LogOut className="w-4 h-4" />
+                {t('nav_logout')}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className={`flex flex-col items-center gap-1 px-3 py-1 ${
+                  pathname === '/login' ? 'text-indigo-400 font-bold' : 'text-slate-400'
+                }`}
+              >
+                <LogIn className="w-4 h-4" />
+                {t('nav_login')}
+              </Link>
+            )
+          )}
         </div>
       </header>
 
