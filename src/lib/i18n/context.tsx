@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import enDict from './dictionaries/en.json';
 import bnDict from './dictionaries/bn.json';
 
@@ -21,17 +21,14 @@ const dictionaries = {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Language>('en');
-
-  useEffect(() => {
+  const [lang, setLangState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'en';
     const cookies = document.cookie.split('; ');
     const langCookie = cookies.find(row => row.startsWith('nirapod_lang='));
     const cookieVal = langCookie ? (langCookie.split('=')[1] as Language) : null;
     const saved = cookieVal || (localStorage.getItem('nirapod_lang') as Language);
-    if (saved && (saved === 'en' || saved === 'bn')) {
-      setLangState(saved);
-    }
-  }, []);
+    return saved === 'en' || saved === 'bn' ? saved : 'en';
+  });
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);

@@ -13,7 +13,6 @@ interface AIBadgeProps {
 }
 
 export const AIBadge: React.FC<AIBadgeProps> = ({
-  category,
   severity,
   targetDepartment,
   isValid = true,

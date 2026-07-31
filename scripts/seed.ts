@@ -336,8 +336,9 @@ async function seed() {
     } else {
       console.log(`[Seed Script] Successfully seeded ${data?.length || DEMO_DHAKA_REPORTS.length} reports!`);
     }
-  } catch (err: any) {
-    console.warn('[Seed Script Warning] Execution warning:', err?.message || err);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn('[Seed Script Warning] Execution warning:', msg);
   }
 }
 

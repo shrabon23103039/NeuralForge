@@ -1,4 +1,4 @@
-import { HotspotCell, Report } from '@/types/database';
+import { Category, HotspotCell, Report } from '@/types/database';
 
 export function calculateHeatmapHotspots(reports: Report[]): HotspotCell[] {
   // Grid size approximately 150m in lat/lng degrees (~0.00135)
@@ -99,7 +99,7 @@ export function calculateHeatmapHotspots(reports: Report[]): HotspotCell[] {
       cell_lng: avgLng,
       risk_score: normalizedRiskScore,
       report_count: cell.count,
-      top_category: topCat as any,
+      top_category: topCat as Category,
       caption_en: captionEn,
       caption_bn: captionBn,
     });

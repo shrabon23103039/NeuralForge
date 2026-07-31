@@ -7,7 +7,8 @@ export async function GET() {
     const reports = await getReports();
     const hotspots = calculateHeatmapHotspots(reports);
     return NextResponse.json({ success: true, count: hotspots.length, data: hotspots });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Failed to calculate hotspots:', err);
     return NextResponse.json({ success: false, error: 'Failed to calculate hotspots' }, { status: 500 });
   }
 }

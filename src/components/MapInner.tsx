@@ -4,8 +4,8 @@ import { useI18n } from '@/lib/i18n/context';
 import { HotspotCell, Report, SOSAlert } from '@/types/database';
 import L from 'leaflet';
 import Link from 'next/link';
-import React, { useEffect } from 'react';
-import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import React from 'react';
+import { Circle, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { AIBadge } from './AIBadge';
 
 interface MapInnerProps {
@@ -15,7 +15,7 @@ interface MapInnerProps {
 }
 
 // Custom Leaflet Pin Icons
-const createCustomIcon = (color: string, label: string) => {
+const createCustomIcon = (color: string) => {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="28" height="42">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24s12-15 12-24c0-6.63-5.37-12-12-12z" fill="${color}" stroke="#0f172a" stroke-width="1.5"/>
@@ -31,9 +31,9 @@ const createCustomIcon = (color: string, label: string) => {
   });
 };
 
-const highIcon = createCustomIcon('#ef4444', 'H');
-const mediumIcon = createCustomIcon('#f59e0b', 'M');
-const lowIcon = createCustomIcon('#10b981', 'L');
+const highIcon = createCustomIcon('#ef4444');
+const mediumIcon = createCustomIcon('#f59e0b');
+const lowIcon = createCustomIcon('#10b981');
 
 const getMarkerIcon = (severity: string) => {
   if (severity === 'high') return highIcon;
@@ -47,14 +47,6 @@ const sosPulsingIcon = L.divIcon({
   iconSize: [20, 20],
   iconAnchor: [10, 10],
 });
-
-function MapRecenter({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
-  return null;
-}
 
 export const MapInner: React.FC<MapInnerProps> = ({ reports, hotspots = [], sosAlerts = [] }) => {
   const { lang, t } = useI18n();

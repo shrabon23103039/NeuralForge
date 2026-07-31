@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { Category, Report, ReportType } from '@/types/database';
-import { AlertCircle, Bot, CheckCircle2, Image as ImageIcon, MapPin, Navigation, Send, Upload } from 'lucide-react';
+import { AlertCircle, Bot, CheckCircle2, MapPin, Navigation, Send, Upload } from 'lucide-react';
 import React, { useState } from 'react';
 import { AIBadge } from './AIBadge';
 
@@ -98,8 +98,9 @@ export const ReportForm: React.FC<{ onReportCreated?: (report: Report) => void }
 
       setSubmittedReport(resData.data);
       if (onReportCreated) onReportCreated(resData.data);
-    } catch (err: any) {
-      setError(err.message || 'Error creating report. Please try again.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error creating report. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }

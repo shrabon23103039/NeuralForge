@@ -3,7 +3,7 @@
 import { AIBadge } from '@/components/AIBadge';
 import { useI18n } from '@/lib/i18n/context';
 import { Report } from '@/types/database';
-import { ArrowLeft, Bot, Calendar, CheckCircle2, MapPin, ThumbsDown, ThumbsUp, UserCheck } from 'lucide-react';
+import { ArrowLeft, Bot, Calendar, MapPin, ThumbsDown, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -12,32 +12,45 @@ export default function ReportDetailPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReport = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/reports/${id}`);
-      const json = await res.json();
-      if (json.success) {
-        setReport(json.data);
-      } else {
-        setError('Report not found');
-      }
-    } catch (e) {
-      setError('Failed to load report detail');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (id) fetchReport();
+    if (!id) return;
+
+    let isMounted = true;
+    const fetchReport = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/reports/${id}`);
+        const json = await res.json();
+        if (isMounted) {
+          if (json.success) {
+            setReport(json.data);
+          } else {
+            setError('Report not found');
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setError('Failed to load report detail');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchReport();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleVote = async (voteType: 'confirm' | 'dispute') => {

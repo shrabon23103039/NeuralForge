@@ -15,7 +15,8 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: report });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Fetch report detail error:', err);
     return NextResponse.json({ success: false, error: 'Failed to fetch report detail' }, { status: 500 });
   }
 }
@@ -39,7 +40,8 @@ export async function PATCH(
     }
 
     return NextResponse.json({ success: true, data: updated });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Update report status error:', err);
     return NextResponse.json({ success: false, error: 'Failed to update report status' }, { status: 500 });
   }
 }

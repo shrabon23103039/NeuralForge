@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/auth/context';
 import { useI18n } from '@/lib/i18n/context';
-import { AlertCircle, Globe, LogIn, LogOut, MapPin, Phone, PlusCircle, Shield, ShieldAlert, User, UserCheck } from 'lucide-react';
+import { Globe, LogIn, LogOut, MapPin, Phone, PlusCircle, Shield, ShieldAlert, User, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -29,7 +29,7 @@ export const Navbar: React.FC = () => {
         );
         lat = pos.coords.latitude;
         lng = pos.coords.longitude;
-      } catch (e) {
+      } catch {
         console.warn('Geolocation fallback to Dhaka center');
       }
     }
@@ -41,7 +41,7 @@ export const Navbar: React.FC = () => {
         body: JSON.stringify({ lat, lng }),
       });
       setSosModalOpen(true);
-    } catch (e) {
+    } catch {
       alert('SOS signal failed to send. Please call 999 immediately.');
     } finally {
       setSosSending(false);

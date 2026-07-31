@@ -23,7 +23,8 @@ export async function PATCH(
     }
 
     return NextResponse.json({ success: true, data: updated });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Failed to update SOS alert status:', err);
     return NextResponse.json({ success: false, error: 'Failed to update SOS alert status' }, { status: 500 });
   }
 }

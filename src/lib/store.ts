@@ -1,4 +1,4 @@
-import { Report, SOSAlert, Verification } from '@/types/database';
+import { Report, SOSAlert } from '@/types/database';
 import { DEMO_DHAKA_REPORTS } from './seedData';
 import { createServiceRoleClient } from './supabase/server';
 
@@ -24,7 +24,7 @@ let memoryReports: Report[] = DEMO_DHAKA_REPORTS.map((r, index) => ({
   updated_at: new Date().toISOString(),
 }));
 
-let memorySOSAlerts: SOSAlert[] = [];
+const memorySOSAlerts: SOSAlert[] = [];
 
 export async function getReports(filters?: {
   type?: string;
@@ -223,7 +223,7 @@ export async function updateSOSStatus(id: string, status: SOSAlert['status']): P
   try {
     const supabase = createServiceRoleClient();
     const { data } = await supabase
-      .from('reports')
+      .from('sos_alerts')
       .update({ status, resolved_at: status === 'resolved' ? new Date().toISOString() : null })
       .eq('id', id)
       .select()

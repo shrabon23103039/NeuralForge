@@ -4,8 +4,8 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import { AIBadge } from '@/components/AIBadge';
 import { useI18n } from '@/lib/i18n/context';
 import { AISummaryResult } from '@/lib/ai/summarizer';
-import { Department, Report, SOSAlert, Status } from '@/types/database';
-import { AlertCircle, Bot, Building2, CheckCircle2, Filter, RefreshCw, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
+import { Report, SOSAlert, Status } from '@/types/database';
+import { Bot, Building2, CheckCircle2, Filter, RefreshCw, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 export default function AuthorityDashboardPage() {
@@ -21,29 +21,34 @@ export default function AuthorityDashboardPage() {
 
   const [briefing, setBriefing] = useState<AISummaryResult | null>(null);
   const [generatingBriefing, setGeneratingBriefing] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [repRes, sosRes] = await Promise.all([
-        fetch(`/api/reports?department=${deptFilter}&status=${statusFilter}&category=${categoryFilter}`),
-        fetch('/api/sos'),
-      ]);
-
-      const repJson = await repRes.json();
-      const sosJson = await sosRes.json();
-
-      if (repJson.success) setReports(repJson.data);
-      if (sosJson.success) setSosAlerts(sosJson.data);
-    } catch (e) {
-      console.error('Failed to load authority dashboard data', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const triggerReload = () => setReloadTick(t => t + 1);
 
   useEffect(() => {
-    fetchData();
+    let isMounted = true;
+    const loadDashboardData = async () => {
+      try {
+        const [repRes, sosRes] = await Promise.all([
+          fetch(`/api/reports?department=${deptFilter}&status=${statusFilter}&category=${categoryFilter}`),
+          fetch('/api/sos'),
+        ]);
+
+        const repJson = await repRes.json();
+        const sosJson = await sosRes.json();
+
+        if (isMounted) {
+          if (repJson.success) setReports(repJson.data);
+          if (sosJson.success) setSosAlerts(sosJson.data);
+        }
+      } catch (e) {
+        console.error('Failed to load authority dashboard data', e);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadDashboardData();
 
     const channel = supabaseBrowser
       .channel('authority_sos_realtime')
@@ -66,9 +71,10 @@ export default function AuthorityDashboardPage() {
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabaseBrowser.removeChannel(channel);
     };
-  }, [deptFilter, statusFilter, categoryFilter]);
+  }, [deptFilter, statusFilter, categoryFilter, reloadTick]);
 
   const handleStatusChange = async (reportId: string, newStatus: Status) => {
     try {
@@ -264,7 +270,7 @@ export default function AuthorityDashboardPage() {
           </h3>
 
           <button
-            onClick={fetchData}
+            onClick={triggerReload}
             className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

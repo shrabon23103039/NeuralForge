@@ -8,13 +8,13 @@ export async function POST(request: Request) {
     const department = body.department || 'all';
     const status = body.status || 'all';
     const category = body.category || 'all';
-    const lang = body.lang || 'en';
 
     const reports = await getReports({ department, status, category });
-    const briefing = await generateAuthorityBriefing(reports, department, lang);
+    const briefing = await generateAuthorityBriefing(reports, department);
 
     return NextResponse.json({ success: true, data: briefing });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Authority briefing error:', err);
     return NextResponse.json({ success: false, error: 'Failed to generate authority briefing' }, { status: 500 });
   }
 }

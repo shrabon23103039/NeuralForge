@@ -10,7 +10,6 @@ export interface AISummaryResult {
 export async function generateAuthorityBriefing(
   reports: Report[],
   department: string = 'all',
-  lang: 'en' | 'bn' = 'en'
 ): Promise<AISummaryResult> {
   const apiKey = process.env.GEMINI_API_KEY;
 

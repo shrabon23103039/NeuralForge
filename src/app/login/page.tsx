@@ -68,6 +68,7 @@ function LoginPageForm() {
           // Re-fetch profile to get role for cookie
           const { supabaseBrowser } = await import('@/lib/supabase/client');
           const { data: { user: currentUser } } = await supabaseBrowser.auth.getUser();
+          let userRole = 'citizen';
           if (currentUser) {
             const { data: profileData } = await supabaseBrowser
               .from('profiles')
@@ -75,10 +76,11 @@ function LoginPageForm() {
               .eq('id', currentUser.id)
               .single();
             if (profileData) {
+              userRole = profileData.role;
               document.cookie = `nirapod_role=${profileData.role}; path=/; max-age=31536000; SameSite=Lax`;
             }
           }
-          const redirect = searchParams.get('redirect') || '/';
+          const redirect = searchParams.get('redirect') || (userRole === 'authority' ? '/authority' : '/');
           router.push(redirect);
         }, 500);
       }

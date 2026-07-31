@@ -23,7 +23,8 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, data: updated });
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error('Failed to record verification vote:', err);
     return NextResponse.json({ success: false, error: 'Failed to record verification vote' }, { status: 500 });
   }
 }

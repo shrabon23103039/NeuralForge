@@ -6,7 +6,7 @@ import { Map } from '@/components/Map';
 import { SOSButton } from '@/components/SOSButton';
 import { useI18n } from '@/lib/i18n/context';
 import { HotspotCell, Report, SOSAlert } from '@/types/database';
-import { AlertTriangle, Database, Filter, Flame, MapPin, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
+import { AlertTriangle, Database, Filter, Flame, MapPin, RefreshCw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
@@ -22,32 +22,37 @@ export default function HomePage() {
 
   const [selectedType, setSelectedType] = useState<string>('all');
   const [showHeatmap, setShowHeatmap] = useState<boolean>(true);
+  const [reloadTick, setReloadTick] = useState(0);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [repRes, hotRes, sosRes] = await Promise.all([
-        fetch('/api/reports'),
-        fetch('/api/hotspots'),
-        fetch('/api/sos'),
-      ]);
-
-      const repJson = await repRes.json();
-      const hotJson = await hotRes.json();
-      const sosJson = await sosRes.json();
-
-      if (repJson.success) setReports(repJson.data);
-      if (hotJson.success) setHotspots(hotJson.data);
-      if (sosJson.success) setSosAlerts(sosJson.data);
-    } catch (err) {
-      console.error('Failed to load map data', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const triggerReload = () => setReloadTick(t => t + 1);
 
   useEffect(() => {
-    fetchData();
+    let isMounted = true;
+    const loadMapData = async () => {
+      try {
+        const [repRes, hotRes, sosRes] = await Promise.all([
+          fetch('/api/reports'),
+          fetch('/api/hotspots'),
+          fetch('/api/sos'),
+        ]);
+
+        const repJson = await repRes.json();
+        const hotJson = await hotRes.json();
+        const sosJson = await sosRes.json();
+
+        if (isMounted) {
+          if (repJson.success) setReports(repJson.data);
+          if (hotJson.success) setHotspots(hotJson.data);
+          if (sosJson.success) setSosAlerts(sosJson.data);
+        }
+      } catch (err) {
+        console.error('Failed to load map data', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadMapData();
 
     const channel = supabaseBrowser
       .channel('citizen_sos_realtime')
@@ -62,9 +67,10 @@ export default function HomePage() {
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabaseBrowser.removeChannel(channel);
     };
-  }, []);
+  }, [reloadTick]);
 
   const handleSeedData = async () => {
     setSeeding(true);
@@ -74,7 +80,7 @@ export default function HomePage() {
       const json = await res.json();
       if (json.success) {
         setSeedSuccessMsg(t('seed_success'));
-        await fetchData();
+        triggerReload();
       }
     } catch (err) {
       console.error('Seeding error', err);
@@ -131,7 +137,7 @@ export default function HomePage() {
 
         {/* SOS Emergency Row */}
         <div className="relative z-10 mt-4 pt-4 border-t border-slate-700/50">
-          <SOSButton onSOSTriggered={() => fetchData()} />
+          <SOSButton onSOSTriggered={() => triggerReload()} />
         </div>
 
         {seedSuccessMsg && (
@@ -204,7 +210,7 @@ export default function HomePage() {
           </label>
 
           <button
-            onClick={fetchData}
+            onClick={triggerReload}
             title="Refresh Map Data"
             className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
           >
