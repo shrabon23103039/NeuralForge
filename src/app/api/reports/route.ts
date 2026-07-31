@@ -1,5 +1,6 @@
 import { classifyReport } from '@/lib/ai/classifier';
 import { createReport, getReports } from '@/lib/store';
+import { uploadReportPhoto } from '@/lib/supabase/storage';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -29,6 +30,15 @@ export async function POST(request: Request) {
       );
     }
 
+    let uploadedPhotoUrl = photo_url || null;
+
+    if (photoBase64) {
+      const storageUrl = await uploadReportPhoto(photoBase64, mimeType || 'image/jpeg');
+      if (storageUrl) {
+        uploadedPhotoUrl = storageUrl;
+      }
+    }
+
     // Call Gemini AI Classification Pipeline
     const aiResult = await classifyReport(
       description,
@@ -43,7 +53,7 @@ export async function POST(request: Request) {
       category: aiResult.category || category || 'other',
       lat: Number(lat),
       lng: Number(lng),
-      photo_url: photo_url || null,
+      photo_url: uploadedPhotoUrl,
       severity: aiResult.severity,
       ai_is_valid: aiResult.is_valid_report,
       ai_summary_en: aiResult.summary_en,
