@@ -157,7 +157,7 @@ export default function HomePage() {
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            All Reports ({reports.length})
+            {t('filter_all')} ({reports.length})
           </button>
           <button
             onClick={() => setSelectedType('crime')}
@@ -167,7 +167,7 @@ export default function HomePage() {
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            🚨 Crime Only
+            🚨 {t('filter_crime')}
           </button>
           <button
             onClick={() => setSelectedType('hazard')}
@@ -177,7 +177,7 @@ export default function HomePage() {
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            🛠️ Infrastructure
+            🛠️ {t('filter_hazard')}
           </button>
           <button
             onClick={() => setSelectedType('high')}
@@ -187,7 +187,7 @@ export default function HomePage() {
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            ⚠️ High Severity
+            ⚠️ {t('filter_high')}
           </button>
         </div>
 
@@ -200,7 +200,7 @@ export default function HomePage() {
               className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-indigo-500"
             />
             <Flame className="w-3.5 h-3.5 text-rose-500" />
-            Show AI Risk Heatmap
+            {t('show_heatmap')}
           </label>
 
           <button
@@ -229,7 +229,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <MapPin className="w-4 h-4 text-emerald-400" />
-              Dhaka Live Hazard Stream ({filteredReports.length})
+              {t('live_stream_title')} ({filteredReports.length})
             </h3>
             <span className="text-[10px] text-slate-500 font-mono">LIVE</span>
           </div>

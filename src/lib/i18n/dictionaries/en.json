@@ -78,5 +78,11 @@
   "auth_toggle_login": "Already registered? Sign in",
   "seed_button": "Seed Demo Data (Dhaka)",
   "seed_loading": "Seeding Demo Data...",
-  "seed_success": "Demo dataset loaded with 18 Dhaka reports!"
+  "seed_success": "Demo dataset loaded with 18 Dhaka reports!",
+  "filter_all": "All Reports",
+  "filter_crime": "Crime Only",
+  "filter_hazard": "Infrastructure",
+  "filter_high": "High Severity",
+  "show_heatmap": "Show AI Risk Heatmap",
+  "live_stream_title": "Dhaka Live Hazard Stream"
 }
