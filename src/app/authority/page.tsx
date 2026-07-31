@@ -92,7 +92,7 @@ export default function AuthorityDashboardPage() {
       const res = await fetch('/api/authority/summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ department: deptFilter, lang }),
+        body: JSON.stringify({ department: deptFilter, status: statusFilter, category: categoryFilter, lang }),
       });
       const json = await res.json();
       if (json.success) {
