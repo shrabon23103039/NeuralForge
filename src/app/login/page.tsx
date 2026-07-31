@@ -14,7 +14,10 @@ function LoginPageForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [isSignUp, setIsSignUp] = useState(false);
+  // Initialize signup mode from ?mode=signup query param (used by /signup redirect)
+  const [isSignUp, setIsSignUp] = useState(() => {
+    return searchParams.get('mode') === 'signup';
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('citizen');
@@ -31,11 +34,39 @@ function LoginPageForm() {
     }
   }, [authLoading, user, profile, router, searchParams]);
 
+  // Sync isSignUp with query param changes (e.g. when /signup redirects here)
+  useEffect(() => {
+    if (searchParams.get('mode') === 'signup') {
+      setIsSignUp(true);
+    }
+  }, [searchParams]);
+
+  const handleToggle = () => {
+    setIsSignUp((prev) => !prev);
+    setMsg(null);
+    setIsError(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
     setIsError(false);
+
+    // Client-side validation
+    if (!email || !email.includes('@')) {
+      setMsg('Please enter a valid email address.');
+      setIsError(true);
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setMsg('Password must be at least 6 characters.');
+      setIsError(true);
+      setLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       const { error } = await signUp(
@@ -105,7 +136,7 @@ function LoginPageForm() {
             <Shield className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold text-white">{t('auth_login_title')}</h1>
-          <p className="text-xs text-slate-400">Dhaka Citizen & Authority Access Portal</p>
+          <p className="text-xs text-slate-400">Dhaka Citizen &amp; Authority Access Portal</p>
         </div>
 
         {msg && (
@@ -213,7 +244,8 @@ function LoginPageForm() {
 
         <div className="text-center pt-2">
           <button
-            onClick={() => { setIsSignUp(!isSignUp); setMsg(null); setIsError(false); }}
+            type="button"
+            onClick={handleToggle}
             className="text-xs text-indigo-400 hover:underline font-medium"
           >
             {isSignUp ? t('auth_toggle_login') : t('auth_toggle_signup')}

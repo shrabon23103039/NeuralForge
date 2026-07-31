@@ -43,11 +43,13 @@ test.describe('Authentication Workflow', () => {
     // Initially in sign-in mode
     await expect(page.getByRole('button', { name: /^sign in$/i })).toBeVisible();
 
-    // Toggle to sign up
-    await page.getByText(/need an account/i).click();
+    // Toggle to sign up by clicking the toggle button
+    const toggleBtn = page.getByRole('button', { name: /need an account/i });
+    await expect(toggleBtn).toBeVisible();
+    await toggleBtn.click();
 
-    // Now should show "Create Account" button
-    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();
+    // Wait for sign up mode — "Create Account" button should appear
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
 
     // Should show role selection
     await expect(page.getByText('Citizen')).toBeVisible();
@@ -64,7 +66,10 @@ test.describe('Authentication Workflow', () => {
     await page.goto('/login');
 
     // Switch to signup mode
-    await page.getByText(/need an account/i).click();
+    await page.getByRole('button', { name: /need an account/i }).click();
+
+    // Wait for signup mode to be active
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
 
     // Check role buttons: t('auth_role_citizen') = "Citizen", t('auth_role_authority') = "Authority Officer"
     const citizenBtn = page.getByRole('button', { name: /citizen/i }).first();
@@ -88,7 +93,10 @@ test.describe('Authentication Workflow', () => {
     await page.goto('/login');
 
     // Switch to signup mode
-    await page.getByText(/need an account/i).click();
+    await page.getByRole('button', { name: /need an account/i }).click();
+
+    // Wait for signup mode to be active
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
 
     // Select authority role
     await page.getByRole('button', { name: /authority officer/i }).click();
@@ -127,5 +135,25 @@ test.describe('Authentication Workflow', () => {
 
     // Should show error message (Supabase auth error)
     await expect(page.locator('.bg-red-950')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should redirect /signup to /login with signup mode', async ({ page }) => {
+    await page.goto('/signup');
+
+    // Should redirect to /login?mode=signup
+    await expect(page).toHaveURL(/\/login\?mode=signup/, { timeout: 10000 });
+
+    // Should auto-open signup mode — "Create Account" button should be visible
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should redirect /register to /login with signup mode', async ({ page }) => {
+    await page.goto('/register');
+
+    // Should redirect to /login?mode=signup
+    await expect(page).toHaveURL(/\/login\?mode=signup/, { timeout: 10000 });
+
+    // Should auto-open signup mode — "Create Account" button should be visible
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
   });
 });
