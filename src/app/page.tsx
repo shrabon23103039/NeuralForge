@@ -1,7 +1,9 @@
 'use client';
 
+import { supabaseBrowser } from '@/lib/supabase/client';
 import { AIBadge } from '@/components/AIBadge';
 import { Map } from '@/components/Map';
+import { SOSButton } from '@/components/SOSButton';
 import { useI18n } from '@/lib/i18n/context';
 import { HotspotCell, Report, SOSAlert } from '@/types/database';
 import { AlertTriangle, Database, Filter, Flame, MapPin, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
@@ -46,6 +48,22 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchData();
+
+    const channel = supabaseBrowser
+      .channel('citizen_sos_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'sos_alerts' },
+        (payload) => {
+          const newAlert = payload.new as SOSAlert;
+          setSosAlerts(prev => [newAlert, ...prev.filter(a => a.id !== newAlert.id)]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseBrowser.removeChannel(channel);
+    };
   }, []);
 
   const handleSeedData = async () => {
@@ -109,6 +127,11 @@ export default function HomePage() {
               {t('nav_report')}
             </Link>
           </div>
+        </div>
+
+        {/* SOS Emergency Row */}
+        <div className="relative z-10 mt-4 pt-4 border-t border-slate-700/50">
+          <SOSButton onSOSTriggered={() => fetchData()} />
         </div>
 
         {seedSuccessMsg && (

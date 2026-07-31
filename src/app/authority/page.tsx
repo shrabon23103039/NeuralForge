@@ -1,5 +1,6 @@
 'use client';
 
+import { supabaseBrowser } from '@/lib/supabase/client';
 import { AIBadge } from '@/components/AIBadge';
 import { useI18n } from '@/lib/i18n/context';
 import { AISummaryResult } from '@/lib/ai/summarizer';
@@ -43,6 +44,30 @@ export default function AuthorityDashboardPage() {
 
   useEffect(() => {
     fetchData();
+
+    const channel = supabaseBrowser
+      .channel('authority_sos_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'sos_alerts' },
+        (payload) => {
+          const newAlert = payload.new as SOSAlert;
+          setSosAlerts(prev => [newAlert, ...prev.filter(a => a.id !== newAlert.id)]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'sos_alerts' },
+        (payload) => {
+          const updatedAlert = payload.new as SOSAlert;
+          setSosAlerts(prev => prev.map(a => (a.id === updatedAlert.id ? updatedAlert : a)));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseBrowser.removeChannel(channel);
+    };
   }, [deptFilter, statusFilter, categoryFilter]);
 
   const handleStatusChange = async (reportId: string, newStatus: Status) => {
